@@ -11,7 +11,8 @@ action() {
     local this_dir="$( cd "$( dirname "${this_file}" )" && pwd )"
 
     # Set code and law area
-    export HAXAD_CODE="${this_dir}"
+    export GEN_CODE="${this_dir}"
+    export GEN_OUT="${this_dir}/output"
     export PYTHONPATH="${this_dir}:${PYTHONPATH}"
     
     # Setup software directories
@@ -28,7 +29,9 @@ action() {
 
     # If conda env "withroot" does not exist create it
     if ! conda env list | grep -q '^withroot'; then
-        mamba create -c conda-forge --name withroot root law
+        mamba create --name withroot
+        mamba env update -n withroot --file environment.yml
+
     fi
 
     # Activate conda environment
@@ -72,5 +75,7 @@ action() {
 
         cd $this_dir
     fi
+
+    export LD_LIBRARY_PATH="${DELPHES_DIR}:${LD_LIBRARY_PATH}"
 }
 action

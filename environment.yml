@@ -1,0 +1,7 @@
+name: withroot
+channels:
+  - conda-forge
+dependencies:
+  - root
+  - law
+  - uproot
