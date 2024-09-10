@@ -46,21 +46,33 @@ class ProcessMixin:
 class DetectorMixin:
     detector = law.Parameter("CMS")
 
-class PrepareConfigs(
-        DetectorMixin,
-        ProcessMixin,
-        BaseTask,
-        law.ExternalTask,
-    ):
+    @property
+    def detector_config_dir(self):
+        return f"{os.getenv('DELPHES_DIR')}/cards"
+    
+    @property
+    def detector_config_file(self):
+        return f"delphes_card_{self.detector}.tcl"
+    
+    @property
+    def detector_config(self):
+        return f"{self.detector_config_dir}/{self.detector_config_file}"
 
+class PrepareConfigs(
+    ProcessMixin,
+    BaseTask,
+    law.ExternalTask,
+):
 
     def output(self):
         return {
-            "detector": self.local_target(f"{self.detector}.tcl"),
             "process": self.local_target(f"{self.process}.cmnd"),
         }
 
-class DelphesPythia8(BaseTask):
+class DelphesPythia8(
+    DetectorMixin,
+    BaseTask,
+):
     def requires(self):
         return PrepareConfigs.req(self)
     
@@ -72,7 +84,7 @@ class DelphesPythia8(BaseTask):
         return f"{os.getenv('DELPHES_DIR')}/DelphesPythia8"
 
     def run(self):
-        detector_config = self.input()["detector"].path
+        detector_config = self.detector_config
         process_config = self.input()["process"].path
 
         self.output.parent.touch()
