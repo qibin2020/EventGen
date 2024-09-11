@@ -6,3 +6,4 @@ dependencies:
   - law
   - uproot
   - black
+  - pytables

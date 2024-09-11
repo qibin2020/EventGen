@@ -4,6 +4,7 @@ import law
 import pandas as pd
 import awkward as ak
 from coffea.nanoevents import NanoEventsFactory, DelphesSchema
+from matplotlib import pyplot as plt
 
 from processor import Skimmer
 
@@ -36,12 +37,32 @@ class BaseTask(law.Task):
 
 
 class ProcessMixin:
-    process = law.Parameter("ttbar")
+    process = law.Parameter(default="ttbar")
+
+    def store_parts(self):
+        sp = super().store_parts()
+        return sp + (self.process,)
+
+    @property
+    def process_config_dir(self):
+        return f"{os.getenv('GEN_CODE')}/config"
+
+    @property
+    def process_config_file(self):
+        return f"pythia_{self.process}.cmnd"
+
+    @property
+    def process_config(self):
+        return f"{self.process_config_dir}/{self.process_config_file}"
 
 
 class DetectorMixin:
-    detector = law.Parameter("CMS")
+    detector = law.Parameter(default="CMS")
 
+    def store_parts(self):
+        sp = super().store_parts()
+        return sp + (self.detector,)
+    
     @property
     def detector_config_dir(self):
         return f"{os.getenv('DELPHES_DIR')}/cards"
@@ -55,25 +76,11 @@ class DetectorMixin:
         return f"{self.detector_config_dir}/{self.detector_config_file}"
 
 
-class PrepareConfigs(
-    ProcessMixin,
-    BaseTask,
-    law.ExternalTask,
-):
-
-    def output(self):
-        return {
-            "process": self.local_target(f"{self.process}.cmnd"),
-        }
-
-
 class DelphesPythia8(
     DetectorMixin,
+    ProcessMixin,
     BaseTask,
 ):
-    def requires(self):
-        return PrepareConfigs.req(self)
-
     def output(self):
         return self.local_target("events.root")
 
@@ -81,24 +88,30 @@ class DelphesPythia8(
     def executable(self):
         return f"{os.getenv('DELPHES_DIR')}/DelphesPythia8"
 
+    @law.decorator.safe_output
     def run(self):
         detector_config = self.detector_config
-        process_config = self.input()["process"].path
+        process_config = self.process_config
 
-        self.output.parent.touch()
+        self.output().parent.touch()
         out_path = self.output().path
 
         cmd = f"{self.executable} {detector_config} {process_config} {out_path}"
         os.system(cmd)
 
 
-class SkimEvents(BaseTask):
+class SkimEvents(
+    DetectorMixin,
+    ProcessMixin,
+    BaseTask,
+):
     def requires(self):
         return DelphesPythia8.req(self)
 
     def output(self):
         return self.local_target("skimmed.h5")
 
+    @law.decorator.safe_output
     def run(self):
         input_file = self.input().path
 
@@ -114,5 +127,19 @@ class SkimEvents(BaseTask):
         df = pd.DataFrame(computed.to_numpy().data)
 
         # Write file to h5
-        self.output.parent.touch()
-        df.to_hdf(self.output.path)
+        self.output().parent.touch()
+        df.to_hdf(self.output().path, key="events")
+
+
+class PlotEvents(SkimEvents):
+    def requires(self):
+        return SkimEvents.req(self)
+    
+    def output(self):
+        return self.local_directory_target("plots.pdf")
+    
+    def run(self):
+        # Read the DataFrame from the HDF5 file
+        df = pd.read_hdf(self.input().path, key="events")
+        df.hist()
+        plt.savefig(self.output().path)
