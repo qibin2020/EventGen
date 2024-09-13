@@ -155,6 +155,12 @@ class PlotEvents(SkimEvents):
     def run(self):
         # Read the DataFrame from the HDF5 file
         df = pd.read_hdf(self.input().path, key="events")
-        df.hist()
+
+        # Plot the Dataframe
+        df.hist(figsize=(15, 8))
+        plt.suptitle(f"{self.process} @ {self.detector} using {self.processor} processor")
+        plt.tight_layout()
+
+        # Save plot
         self.output().parent.touch()
         plt.savefig(self.output().path)
