@@ -4,7 +4,7 @@ import coffea.processor as processor
 from coffea.nanoevents.methods import candidate
 
 
-class Skimmer(processor.ProcessorABC):
+class Processor(processor.ProcessorABC):
     def postprocess(self, accumulator):
         pass
 
@@ -12,6 +12,7 @@ class Skimmer(processor.ProcessorABC):
         pad = lambda x, target: ak.pad_none(x, target=target, clip=True)
         jets = pad(events.Jet, 2)
         photons = pad(events.Photon, 2)
+        from IPython import embed;embed()  # fmt: skip
         return ak.zip(
             {
                 # photons

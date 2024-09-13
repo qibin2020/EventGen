@@ -1,13 +1,11 @@
 import os
+import importlib
 
 import law
 import pandas as pd
 import awkward as ak
 from coffea.nanoevents import NanoEventsFactory, DelphesSchema
 from matplotlib import pyplot as plt
-
-from processor import Skimmer
-
 
 class BaseTask(law.Task):
     """
@@ -76,6 +74,21 @@ class DetectorMixin:
         return f"{self.detector_config_dir}/{self.detector_config_file}"
 
 
+class ProcessorMixin:
+    processor = law.Parameter(default="yy")
+
+    def store_parts(self):
+        sp = super().store_parts()
+        return sp + (self.processor,)
+
+    @property
+    def processor_module(self):
+        return importlib.import_module(f"processors.{self.processor}")
+
+    @property
+    def processor_class(self):
+        return getattr(self.processor_module, 'Processor')
+
 class DelphesPythia8(
     DetectorMixin,
     ProcessMixin,
@@ -101,6 +114,7 @@ class DelphesPythia8(
 
 
 class SkimEvents(
+    ProcessorMixin,
     DetectorMixin,
     ProcessMixin,
     BaseTask,
@@ -121,8 +135,8 @@ class SkimEvents(
             metadata={"dataset": "ttbar"},
         ).events()
 
-        skimmer = Skimmer()
-        out = skimmer.process(events)
+        processor = self.processor_class()
+        out = processor.process(events)
         computed = out.compute()
         df = pd.DataFrame(computed.to_numpy().data)
 
@@ -142,4 +156,5 @@ class PlotEvents(SkimEvents):
         # Read the DataFrame from the HDF5 file
         df = pd.read_hdf(self.input().path, key="events")
         df.hist()
+        self.output().parent.touch()
         plt.savefig(self.output().path)
