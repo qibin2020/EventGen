@@ -37,6 +37,9 @@ action() {
     # Activate conda environment
     conda activate withroot
 
+    # law setup
+    source "$( law completion )" ""
+
     # If Pythia not installed yet, do so
     if [ -d "$PYTHIA_DIR" ]; then
         echo "Pythia already installed"
