@@ -103,4 +103,31 @@ class SlurmFactory:
 
         return decor
 
-slurm_factory = SlurmFactory()
+
+configs = {
+    "perlmutter_debug": dict(
+        cores=1,
+        memory="16GB",
+        walltime="00:30:00",
+        job_extra_directives=["--qos=debug", "-C cpu"],
+    ),
+    "perlmutter_small": dict(
+        cores=1,
+        memory="16GB",
+        walltime="01:00:00",
+        job_extra_directives=["--qos=regular", "-C cpu"],
+    ),
+    "perlmutter_medium": dict(
+        cores=1,
+        memory="64GB",
+        walltime="08:00:00",
+        job_extra_directives=["--qos=regular", "-C cpu"],
+    ),
+}
+
+slurm_factory = SlurmFactory(
+    jobs=1,
+    log_directory=os.getenv("GEN_SLURM"),
+    local_directory=os.getenv("GEN_SLURM"),
+    **configs["perlmutter_debug"],
+)
