@@ -19,8 +19,8 @@ Beams:idB = 2212                    ! second beam, p = 2212, pbar = -2212
 Beams:eCM = 14000.                  ! CM energy of collision
 
 ! 4) Settings for the hard-process generation.
-HiggsSM:ffbar2HZ = on               ! Higgs production in association with a Z boson
-HiggsSM:ffbar2HW = on               ! Higgs production in association with a W boson
+HiggsSM:gg2Httbar = on              ! gg induced ttH production
+HiggsSM:qqbar2Httbar = on           ! qq induced ttH production
 
 ! Higgs decay settings
 25:m0 = 125.0                       ! Higgs mass in GeV

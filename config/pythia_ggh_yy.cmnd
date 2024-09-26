@@ -1,29 +1,28 @@
 ! Pythia 8 Configuration File
-! Generation of non-resonant proton-proton to photon-photon (pp -> γγ) process
+! Generation of Higgs to photon-photon (pp -> H -> γγ) process
 
 ! 1) Settings used in the main program.
-Main:numberOfEvents = 1000         ! number of events to generate
-Main:timesAllowErrors = 3          ! how many aborts before run stops
+Main:numberOfEvents = 10000         ! number of events to generate
+Main:timesAllowErrors = 3           ! how many aborts before run stops
 
 ! 2) Settings related to output in init(), next() and stat().
 Init:showChangedSettings = off      ! list changed settings
-Init:showChangedParticleData = off ! list changed particle data
-Next:numberCount = 1             ! print message every n events
-Next:numberShowInfo = 1            ! print event information n times
-Next:numberShowProcess = 100         ! print process record n times
-Next:numberShowEvent = 1           ! print event record n times
+Init:showChangedParticleData = off  ! list changed particle data
+Next:numberCount = 0                ! print message every n events
+Next:numberShowInfo = 0             ! Disable event information printout
+Next:numberShowProcess = 0          ! Disable process record printout
+Next:numberShowEvent = 0            ! Disable event record printout
 
 ! 3) Beam parameter settings. Values below agree with default ones.
-Beams:idA = 2212                   ! first beam, p = 2212, pbar = -2212
-Beams:idB = 2212                   ! second beam, p = 2212, pbar = -2212
-Beams:eCM = 14000.                 ! CM energy of collision
+Beams:idA = 2212                    ! first beam, p = 2212, pbar = -2212
+Beams:idB = 2212                    ! second beam, p = 2212, pbar = -2212
+Beams:eCM = 14000.                  ! CM energy of collision
 
 ! 4) Settings for the hard-process generation.
-! Enable QED-induced photon pair production
 HiggsSM:ffbar2H = on
 HiggsSM:gg2H = on
 
 ! Higgs decay settings
-25:m0 = 125.0                         ! Higgs mass in GeV
-25:onMode = off                       ! Turn off all Higgs decays
-25:onIfMatch = 22 22                  ! Enable only H -> gamma gamma decay
+25:m0 = 125.0                       ! Higgs mass in GeV
+25:onMode = off                     ! Turn off all Higgs decays
+25:onIfMatch = 22 22                ! Enable only H -> gamma gamma decay

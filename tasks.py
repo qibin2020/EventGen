@@ -7,6 +7,8 @@ import awkward as ak
 from coffea.nanoevents import NanoEventsFactory, DelphesSchema
 from matplotlib import pyplot as plt
 
+from utils.pythia import replace_in_config
+
 class BaseTask(law.Task):
     """
     Base task which provides some convenience methods
@@ -87,15 +89,47 @@ class ProcessorMixin:
 
     @property
     def processor_class(self):
-        return getattr(self.processor_module, 'Processor')
+        return getattr(self.processor_module, "Processor")
+
+
+class OriginalProcessConfig(ProcessMixin, law.ExternalTask):
+    def output(self):
+        return law.LocalFileTarget(self.process_config)
+
+
+class ProcessConfig(ProcessMixin, BaseTask):
+    n_events = luigi.IntParameter(default=1)
+
+    def store_parts(self):
+        sp = super().store_parts()
+        return sp + (f"n_events_{int(self.n_events)}",)
+
+    def requires(self):
+        return OriginalProcessConfig.req(self)
+
+    def output(self):
+        return self.local_target("config.cmnd")
+
+    @property
+    def replacements(self):
+        return {"Main:numberOfEvents": self.n_events}
+
+    def run(self):
+        config = self.input().load(formatter="text")
+        new_config = replace_in_config(config, self.replacements)
+        self.output().dump(new_config, formatter="text")
+
 
 class DelphesPythia8(
     DetectorMixin,
-    ProcessMixin,
+    ProcessConfig,
     BaseTask,
 ):
     def output(self):
         return self.local_target("events.root")
+
+    def requires(self):
+        return ProcessConfig.req(self)
 
     @property
     def executable(self):
@@ -104,7 +138,7 @@ class DelphesPythia8(
     @law.decorator.safe_output
     def run(self):
         detector_config = self.detector_config
-        process_config = self.process_config
+        process_config = self.input().path
 
         self.output().parent.touch()
         out_path = self.output().path
@@ -116,7 +150,7 @@ class DelphesPythia8(
 class SkimEvents(
     ProcessorMixin,
     DetectorMixin,
-    ProcessMixin,
+    ProcessConfig,
     BaseTask,
 ):
     def requires(self):

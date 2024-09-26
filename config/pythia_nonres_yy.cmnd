@@ -2,29 +2,28 @@
 ! Generation of non-resonant proton-proton to photon-photon (pp -> γγ) process
 
 ! 1) Settings used in the main program.
-Main:numberOfEvents = 10000        ! number of events to generate
-Main:timesAllowErrors = 3          ! how many aborts before run stops
+Main:numberOfEvents = 10000         ! number of events to generate
+Main:timesAllowErrors = 3           ! how many aborts before run stops
 
 ! 2) Settings related to output in init(), next() and stat().
 Init:showChangedSettings = off      ! list changed settings
-Init:showChangedParticleData = off ! list changed particle data
+Init:showChangedParticleData = off  ! list changed particle data
 Next:numberCount = 0                ! print message every n events
-Next:numberShowInfo = 0          ! Disable event information printout
-Next:numberShowProcess = 0       ! Disable process record printout
-Next:numberShowEvent = 0         ! Disable event record printout
+Next:numberShowInfo = 0             ! Disable event information printout
+Next:numberShowProcess = 0          ! Disable process record printout
+Next:numberShowEvent = 0            ! Disable event record printout
 
 ! 3) Beam parameter settings. Values below agree with default ones.
-Beams:idA = 2212                   ! first beam, p = 2212, pbar = -2212
-Beams:idB = 2212                   ! second beam, p = 2212, pbar = -2212
-Beams:eCM = 14000.                 ! CM energy of collision
+Beams:idA = 2212                    ! first beam, p = 2212, pbar = -2212
+Beams:idB = 2212                    ! second beam, p = 2212, pbar = -2212
+Beams:eCM = 14000.                  ! CM energy of collision
 
 ! 4) Settings for the hard-process generation.
-! Enable QED-induced photon pair production
 ! From Pythia Documentation: In addition to the photons produced in the hard scattering (prompt photons), photons may also be formed in parton showers and hadron decays. Therefore QCD processes might be needed to obtain a realistic rates for photon production.
-PromptPhoton:all = off             ! Disable all prompt photon processes
-PromptPhoton:gg2gammagamma = on    ! gluon-gluon fusion
-PromptPhoton:ffbar2gammagamma = on ! quark-anti-quark annihilation
+PromptPhoton:all = off              ! Disable all prompt photon processes
+PromptPhoton:gg2gammagamma = on     ! gluon-gluon fusion
+PromptPhoton:ffbar2gammagamma = on  ! quark-anti-quark annihilation
 
 ! 5) Phase space and cuts (adjust as necessary)
 PhaseSpace:pTHatMin = 20.0          ! Minimum pT hat for the hard process
-PhaseSpace:mHatMin = 20.0           ! Minimum invariant mass of the diphoton system
+PhaseSpace:mHatMin = 20.0           ! Minimum invariant mass of the diphoton system -> can raise this
