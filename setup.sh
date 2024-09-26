@@ -10,10 +10,15 @@ action() {
     local this_file="$( ${shell_is_zsh} && echo "${(%):-%x}" || echo "${BASH_SOURCE[0]}" )"
     local this_dir="$( cd "$( dirname "${this_file}" )" && pwd )"
 
+    # set PYTHONPATH
+    export PYTHONPATH="${this_dir}:${PYTHONPATH}"
+
+    local scratch_dir="/pscratch/sd/d/dnoll/projects/haxad/EventGenDelphes"
+
     # Set code and law area
     export GEN_CODE="${this_dir}"
-    export GEN_OUT="${this_dir}/output"
-    export PYTHONPATH="${this_dir}:${PYTHONPATH}"
+    export GEN_OUT="${scratch_dir}/output"
+    export GEN_SLURM="${GEN_OUT}/slurm"
     
     # Setup software directories
     export SOFTWARE_DIR="${this_dir}/software"
