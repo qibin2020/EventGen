@@ -208,9 +208,9 @@ class PlotEvents(SkimEvents):
 class PlotEventsWrapper(BaseTask, law.WrapperTask):
     def requires(self):
         return [
-            PlotEvents.req(self, process="nonres_yy", n_events=1.5e6),
-            PlotEvents.req(self, process="ggh_yy", n_events=1.5e4),
-            PlotEvents.req(self, process="ttH_yy", n_events=1e3),
-            PlotEvents.req(self, process="vbf_yy", n_events=1e3),
-            PlotEvents.req(self, process="vh_yy", n_events=1e4),
+            PlotEvents.req(self, process="nonres_yy", n_events=6e6),
+            PlotEvents.req(self, process="ggh_yy", n_events=6e4),
+            PlotEvents.req(self, process="ttH_yy", n_events=4e3),
+            PlotEvents.req(self, process="vbf_yy", n_events=4e3),
+            PlotEvents.req(self, process="vh_yy", n_events=4e4),
         ]
