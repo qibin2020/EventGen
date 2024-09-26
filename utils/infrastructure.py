@@ -104,26 +104,32 @@ class SlurmFactory:
         return decor
 
 
+log_dir = [
+    f'-o {os.getenv("GEN_SLURM")}/slurm-%j.out',
+    f'-e {os.getenv("GEN_SLURM")}/slurm-%j.err',
+]
+
 configs = {
     "perlmutter_debug": dict(
         cores=1,
         memory="16GB",
         walltime="00:30:00",
-        job_extra_directives=["--qos=debug", "-C cpu"],
+        job_extra_directives=["--qos=debug", "-C cpu"] + log_dir,
     ),
     "perlmutter_small": dict(
         cores=1,
         memory="16GB",
         walltime="01:00:00",
-        job_extra_directives=["--qos=regular", "-C cpu"],
+        job_extra_directives=["--qos=regular", "-C cpu"] + log_dir,
     ),
     "perlmutter_medium": dict(
         cores=1,
         memory="64GB",
         walltime="08:00:00",
-        job_extra_directives=["--qos=regular", "-C cpu"],
+        job_extra_directives=["--qos=regular", "-C cpu"] + log_dir,
     ),
 }
+
 
 slurm_factory = SlurmFactory(
     jobs=1,
