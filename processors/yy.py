@@ -49,6 +49,40 @@ class Processor(processor.ProcessorABC):
 
         met_pt = events.MissingET.MET
 
+        # misc event features
+        n_photons = ak.num(events.Photon)
+        n_jets = ak.num(events.Jet)
+        event_weight = events.Event.Weight
+
+        # event selection
+        """
+        # Main Selection:
+        ## Event
+        HasPrimaryVertex: HGamEventInfoAuxDyn.numberOfPrimaryVertices > 0 -> dont
+        TwoLossePhotons + e y ambiguity cut: HGamEventInfoAuxDyn.NLoosePhotons >= 2 -> implemented
+        ## Trigger:
+        Full implementation (EventInfoAuxDyn.passTrig_HLT_g35_medium_g25_medium_L12EM20VH || EventInfoAuxDyn.passTrig_HLT_g140_loose || EventInfoAuxDyn.passTrig_HLT_g35_loose_g25_loose || EventInfoAuxDyn.passTrig_HLT_g120_loose)
+        Di lepton triggers: lead photon pT > 35 && sublead photon pT > 25 -> implemented
+        Trigger Matching: HGamEventInfoAuxDyn.isPassedTriggerMatch -> dont
+        ## Photons
+        Tight Photon ID: HGamEventInfoAuxDyn.isPassedPID -> dont
+        Photon Iso: HGamEventInfoAuxDyn.isPassedIsolation -> later?
+        https://gitlab.cern.ch/atlas/athena/-/blob/main/PhysicsAnalysis/AnalysisCommon/IsolationSelection/Root/IsolationSelectionTool.cxx#L220-251
+        https://gitlab.cern.ch/atlas/athena/-/blob/main/PhysicsAnalysis/AnalysisCommon/IsolationSelection/Root/IsolationConditionFormula.cxx#L44
+        Relative Pt cut (The two leading, pre-selected photons pass the 0.4 / 0.3 relative pT cuts, relative to myy): HGamEventInfoAuxDyn.isPassedRelPtCuts -> implemented
+        myy mass window cut: (HGamEventInfoAuxDyn.m_yy > 105000) && (HGamEventInfoAuxDyn.m_yy < 160000) -> implemented
+        """
+        good = n_photons >= 2
+        # Trigger
+        trigger = ((photons[:, 0].pt > 35) & (photons[:, 1].pt > 25)) | (photons[:, 0].pt > 140)  # fmt: skip
+        good = good & trigger
+        # Rel pT cut
+        rel_pt_cut = (photon1_pt_rel > 0.4) & (photon2_pt_rel > 0.3)
+        good = good & rel_pt_cut
+        # Myy mass window
+        myy_cut = (diphoton_mass > 105) & (diphoton_mass < 160)
+        good = good & myy_cut
+
         return ak.zip(
             {
                 # photons
@@ -67,7 +101,8 @@ class Processor(processor.ProcessorABC):
                 # met
                 "met_pt": met_pt,
                 # misc features
-                "n_photon": ak.num(events.Photon),
-                "n_jet": ak.num(events.Jet),
+                "n_photon": n_photons,
+                "n_jet": n_jets,
+                "event_weight": event_weight,
             }
-        )
+        )[good]
