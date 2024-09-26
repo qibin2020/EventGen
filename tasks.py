@@ -1,6 +1,7 @@
 import os
 import importlib
 
+import luigi
 import law
 import pandas as pd
 import awkward as ak
@@ -8,6 +9,8 @@ from coffea.nanoevents import NanoEventsFactory, DelphesSchema
 from matplotlib import pyplot as plt
 
 from utils.pythia import replace_in_config
+from utils.infrastructure import slurm_factory
+
 
 class BaseTask(law.Task):
     """
@@ -62,7 +65,7 @@ class DetectorMixin:
     def store_parts(self):
         sp = super().store_parts()
         return sp + (self.detector,)
-    
+
     @property
     def detector_config_dir(self):
         return f"{os.getenv('DELPHES_DIR')}/cards"
@@ -135,6 +138,7 @@ class DelphesPythia8(
     def executable(self):
         return f"{os.getenv('DELPHES_DIR')}/DelphesPythia8"
 
+    @slurm_factory.execute
     @law.decorator.safe_output
     def run(self):
         detector_config = self.detector_config
@@ -166,7 +170,6 @@ class SkimEvents(
         events = NanoEventsFactory.from_root(
             {input_file: "Delphes"},
             schemaclass=DelphesSchema,
-            metadata={"dataset": "ttbar"},
         ).events()
 
         processor = self.processor_class()
@@ -182,19 +185,32 @@ class SkimEvents(
 class PlotEvents(SkimEvents):
     def requires(self):
         return SkimEvents.req(self)
-    
+
     def output(self):
         return self.local_directory_target("plots.pdf")
-    
+
     def run(self):
         # Read the DataFrame from the HDF5 file
         df = pd.read_hdf(self.input().path, key="events")
 
         # Plot the Dataframe
-        df.hist(figsize=(15, 8))
-        plt.suptitle(f"{self.process} @ {self.detector} using {self.processor} processor")
+        df.hist(figsize=(15, 8), log=True)
+        plt.suptitle(
+            f"Process {self.process} @ {self.detector} using {self.processor} processor"
+        )
         plt.tight_layout()
 
         # Save plot
         self.output().parent.touch()
         plt.savefig(self.output().path)
+
+
+class PlotEventsWrapper(BaseTask, law.WrapperTask):
+    def requires(self):
+        return [
+            PlotEvents.req(self, process="nonres_yy", n_events=1.5e6),
+            PlotEvents.req(self, process="ggh_yy", n_events=1.5e4),
+            PlotEvents.req(self, process="ttH_yy", n_events=1e3),
+            PlotEvents.req(self, process="vbf_yy", n_events=1e3),
+            PlotEvents.req(self, process="vh_yy", n_events=1e4),
+        ]

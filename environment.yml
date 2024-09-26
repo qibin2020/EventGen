@@ -2,8 +2,14 @@ name: withroot
 channels:
   - conda-forge
 dependencies:
+  - python
   - root
   - law
-  - uproot
   - black
   - pytables
+  - dask==2024.8.2
+  - dask-jobqueue
+  - coffea
+  - black
+  - pip:
+    - coffea[dask]
