@@ -82,27 +82,29 @@ class Processor(processor.ProcessorABC):
         # Myy mass window
         myy_cut = (diphoton_mass > 105) & (diphoton_mass < 160)
         good = good & myy_cut
+        # Prevent None in mask
+        good = ak.fill_none(good, False)
 
         return ak.zip(
             {
                 # photons
-                "diphoton_mass": diphoton_mass,
-                "photon1_pt_rel": photon1_pt_rel,
-                "photon2_pt_rel": photon2_pt_rel,
-                "diphoton_delta_r": diphoton_delta_r,
+                "diphoton_mass": diphoton_mass[good],
+                "photon1_pt_rel": photon1_pt_rel[good],
+                "photon2_pt_rel": photon2_pt_rel[good],
+                "diphoton_delta_r": diphoton_delta_r[good],
                 # jets
-                "jet1_pt": jets.pt[:, 0],
-                "jet2_pt": jets.pt[:, 1],
-                "dijet_mass": dijet_mass,
-                "dijet_delta_r": dijet_delta_r,
-                "ht_30": ht_30,
+                "jet1_pt": jets.pt[:, 0][good],
+                "jet2_pt": jets.pt[:, 1][good],
+                "dijet_mass": dijet_mass[good],
+                "dijet_delta_r": dijet_delta_r[good],
+                "ht_30": ht_30[good],
                 # leptons
-                "has_lepton": has_lepton,
+                "has_lepton": has_lepton[good],
                 # met
-                "met_pt": met_pt,
+                "met_pt": met_pt[good],
                 # misc features
-                "n_photon": n_photons,
-                "n_jet": n_jets,
-                "event_weight": event_weight,
+                "n_photon": n_photons[good],
+                "n_jet": n_jets[good],
+                "event_weight": event_weight[good],
             }
-        )[good]
+        )
