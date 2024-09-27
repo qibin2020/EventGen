@@ -95,18 +95,20 @@ class ProcessorMixin:
         return getattr(self.processor_module, "Processor")
 
 
-class OriginalProcessConfig(ProcessMixin, law.ExternalTask):
-    def output(self):
-        return law.LocalFileTarget(self.process_config)
-
-
-class ProcessConfig(ProcessMixin, BaseTask):
+class NEventsMixin:
     n_events = luigi.IntParameter(default=1)
 
     def store_parts(self):
         sp = super().store_parts()
         return sp + (f"n_events_{int(self.n_events)}",)
 
+
+class OriginalProcessConfig(ProcessMixin, law.ExternalTask):
+    def output(self):
+        return law.LocalFileTarget(self.process_config)
+
+
+class ProcessConfig(NEventsMixin, ProcessMixin, BaseTask):
     def requires(self):
         return OriginalProcessConfig.req(self)
 
@@ -125,7 +127,8 @@ class ProcessConfig(ProcessMixin, BaseTask):
 
 class DelphesPythia8(
     DetectorMixin,
-    ProcessConfig,
+    NEventsMixin,
+    ProcessMixin,
     BaseTask,
 ):
     def output(self):
@@ -154,7 +157,8 @@ class DelphesPythia8(
 class SkimEvents(
     ProcessorMixin,
     DetectorMixin,
-    ProcessConfig,
+    NEventsMixin,
+    ProcessMixin,
     BaseTask,
 ):
     def requires(self):
@@ -175,6 +179,7 @@ class SkimEvents(
         processor = self.processor_class()
         out = processor.process(events)
         computed = out.compute()
+
         df = pd.DataFrame(computed.to_numpy().data)
 
         # Write file to h5
