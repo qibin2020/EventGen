@@ -7,8 +7,12 @@ import pandas as pd
 import awkward as ak
 from coffea.nanoevents import NanoEventsFactory, DelphesSchema
 from matplotlib import pyplot as plt
+from dask_jobqueue import SLURMCluster
+from dask.distributed import Client
+from dask import delayed
 
-from utils.pythia import replace_in_config
+from utils.pythia import replace_in_config, replacements
+from utils.infrastructure import configs
 
 
 class BaseTask(law.Task):
@@ -113,7 +117,6 @@ class DelphesPythia8(
     ProcessMixin,
     BaseTask,
 ):
-
     n_max = luigi.IntParameter(default=100000)
 
     @property
@@ -128,12 +131,14 @@ class DelphesPythia8(
     def identifiers(self):
         return list(str(i) for i in range(len(self.brakets)))
 
-    def replacements(self, n_events=1):
-        return {"Main:numberOfEvents": n_events}
-     
     def output(self):
-        return {identifier: {"config": self.local_target(f"config_{identifier}.txt"), "events": self.local_target(f"events_{identifier}.root")}
-                for identifier in self.identifiers}
+        return {
+            identifier: {
+                "config": self.local_target(f"config_{identifier}.txt"),
+                "events": self.local_target(f"events_{identifier}.root"),
+            }
+            for identifier in self.identifiers
+        }
 
     def requires(self):
         return OriginalProcessConfig.req(self)
@@ -147,33 +152,33 @@ class DelphesPythia8(
         detector_config = self.detector_config
         process_config_base = self.input().load(formatter="text")
 
+        # Set up the tasks to compute
         cmds = []
         for identifier, (start, stop) in zip(self.identifiers, self.brakets):
             config_target = self.output()[identifier]["config"]
             events_target = self.output()[identifier]["events"]
-            
+
             config_target.parent.touch()
             events_target.parent.touch()
-            
+
             n_events = stop - start
-            process_config = replace_in_config(process_config_base, self.replacements(n_events))
+            process_config = replace_in_config(
+                process_config_base,
+                replacements(n_events),
+            )
             config_target.dump(process_config, formatter="text")
 
             cmd = f"{self.executable} {detector_config} {config_target.path} {events_target.path}"
             cmds.append(cmd)
 
-        from dask_jobqueue import SLURMCluster
-        from dask.distributed import Client
-        from dask import delayed
-        from utils.infrastructure import configs
         # Set up the SLURM cluster
         cluster = SLURMCluster(**configs["perlmutter_debug"])
-        cluster.scale(2)  # Request 10 workers
+        cluster.scale(len(self.brakets))
 
         # Connect to the cluster
         client = Client(cluster)
 
-        # Create and submit 10 tasks
+        # Submit tasks
         tasks = [delayed(os.system)(cmd) for cmd in cmds]
         results = client.compute(tasks)
 
@@ -244,9 +249,9 @@ class PlotEvents(SkimEvents):
 class PlotEventsWrapper(BaseTask, law.WrapperTask):
     def requires(self):
         return [
-            PlotEvents.req(self, process="nonres_yy", n_events=6e6),
-            PlotEvents.req(self, process="ggh_yy", n_events=6e4),
-            PlotEvents.req(self, process="ttH_yy", n_events=4e3),
-            PlotEvents.req(self, process="vbf_yy", n_events=4e3),
-            PlotEvents.req(self, process="vh_yy", n_events=4e4),
+            # PlotEvents.req(self, process="nonres_yy", n_events=6e6),
+            # PlotEvents.req(self, process="ggh_yy", n_events=6e4),
+            # PlotEvents.req(self, process="ttH_yy", n_events=4e3),
+            # PlotEvents.req(self, process="vbf_yy", n_events=4e3),
+            PlotEvents.req(self, process="vh_yy", n_events=4),
         ]

@@ -12,3 +12,6 @@ def replace_in_config(config, replacements={}):
                 _line = line
         new_config.append(_line)
     return "".join(new_config)
+
+def replacements(n_events=1):
+    return {"Main:numberOfEvents": n_events}
