@@ -1,10 +1,20 @@
 import os
+import warnings
 import functools
 from typing import Callable, TypeVar, Any
 
 from dask_jobqueue import SLURMCluster
 from dask.distributed import Client
 from dask import delayed, compute
+
+
+# Filter dask warnings about used port
+warnings.filterwarnings(
+    "ignore",
+    message=r"Port \d+ is already in use",
+    category=UserWarning,
+    module="distributed.node",
+)
 
 
 # Define a generic type for the decorator
