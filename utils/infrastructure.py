@@ -131,9 +131,9 @@ configs = {
 }
 
 
-slurm_factory = SlurmFactory(
-    jobs=1,
-    log_directory=os.getenv("GEN_SLURM"),
-    local_directory=os.getenv("GEN_SLURM"),
-    **configs["perlmutter_debug"],
-)
+# slurm_factory = SlurmFactory(
+#     jobs=1,
+#     log_directory=os.getenv("GEN_SLURM"),
+#     local_directory=os.getenv("GEN_SLURM"),
+#     **configs["perlmutter_debug"],
+# )
