@@ -1,9 +1,14 @@
 #!/usr/bin/env bash
 action() {
     # Set version of used software
-    local pythia_version_major="pythia83"
-    local pythia_version="pythia8311"
-    local delphes_version="Delphes-3.5.0"
+    local madgraph_download_dir="https://launchpad.net/mg5amcnlo/3.0/3.6.x/+download"
+    local madgraph_download_file="MG5_aMC_v3.5.6"
+
+    local pythia_download_dir="https://pythia.org/download/pythia83"
+    local pythia_download_file="pythia8311"
+
+    local delphes_download_dir="http://cp3.irmp.ucl.ac.be/downloads"
+    local delphes_download_file="Delphes-3.5.0"
 
     # Set main directories
     local shell_is_zsh="$( [ -z "${ZSH_VERSION}" ] && echo "false" || echo "true" )"
@@ -24,8 +29,9 @@ action() {
     export SOFTWARE_DIR="${this_dir}/software"
     mkdir -p $SOFTWARE_DIR
 
-    export PYTHIA_DIR="${SOFTWARE_DIR}/${pythia_version}"
-    export DELPHES_DIR="${SOFTWARE_DIR}/${delphes_version}"
+    export MADGRAPH_DIR="${SOFTWARE_DIR}/${madgraph_download_file//./_}"
+    export PYTHIA_DIR="${SOFTWARE_DIR}/${pythia_download_file}"
+    export DELPHES_DIR="${SOFTWARE_DIR}/${delphes_download_file}"
 
     # If no conda available, activate it
     if ! command -v conda >/dev/null 2>&1; then
@@ -46,16 +52,29 @@ action() {
     source "$( law completion )" ""
 
     # If Pythia not installed yet, do so
+    if [ -d "$MADGRAPH_DIR" ]; then
+        echo "Madgraph already installed"
+    else
+        echo "Installing Madgraph"
+        cd $SOFTWARE_DIR
+        wget ${madgraph_download_dir}/${madgraph_download_file}.tar.gz
+        tar -xf "${madgraph_download_file}.tar.gz"
+        rm "${madgraph_download_file}.tar.gz"
+        
+        cd $this_dir
+    fi
+
+    # If Pythia not installed yet, do so
     if [ -d "$PYTHIA_DIR" ]; then
         echo "Pythia already installed"
     else
         echo "Installing Pythia"
         cd $SOFTWARE_DIR
-        wget "https://pythia.org/download/${pythia_version_major}/${pythia_version}.tgz"
-        tar xzvf "${pythia_version}.tgz"
-        rm "${pythia_version}.tgz"
-        cd $pythia_version
-        make
+        wget "${pythia_download_dir}/${pythia_download_file}.tgz"
+        tar xzvf "${pythia_download_file}.tgz"
+        rm "${pythia_download_file}.tgz"
+        cd $pythia_download_file
+        make -j4
 
         cd $this_dir
     fi
@@ -71,15 +90,12 @@ action() {
     else
         echo "Installing Delphes"
         cd $SOFTWARE_DIR
-        wget "http://cp3.irmp.ucl.ac.be/downloads/${delphes_version}.tar.gz"
-        tar -zxf "${delphes_version}.tar.gz"
-        rm "${delphes_version}.tar.gz"
-        cd $delphes_version
+        wget "${delphes_download_dir}/${delphes_download_file}.tar.gz"
+        tar -zxf "${delphes_download_file}.tar.gz"
+        rm "${delphes_download_file}.tar.gz"
+        cd $delphes_download_file
         make -j4
         make -j4 HAS_PYTHIA8=true DelphesPythia8
-
-        cp $this_dir/myprocess_ttbar.C $DELPHES_DIR/examples
-        cp $this_dir/pythia_ttbar.cmnd $DELPHES_DIR/cards
 
         cd $this_dir
     fi

@@ -1,0 +1,20 @@
+# MSSM chihchiw model
+# Current estimate of cross-section: 0.342 +- 0.002
+import model MSSM_SLHA2
+
+# Define multiparticle labels
+define x1 = x1+ x1-
+define w = w+ w-
+
+# Specify process(es) to run
+generate p p > x1+ n2, x1+ > w+ n1, n2 > h01 n1
+
+output OUTPUT_PLACEHOLDER
+launch
+
+set nevents NEVENTS_PLACEHOLDER
+
+set param_card mass 1000022 0.5
+set param_card mass 1000023 200
+set param_card mass 1000024 200
+set param_card mass -1000024 200

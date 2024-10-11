@@ -1,5 +1,6 @@
 import os
 import importlib
+import subprocess
 
 import luigi
 import law
@@ -52,15 +53,19 @@ class ProcessMixin:
 
     @property
     def process_config_dir(self):
-        return f"{os.getenv('GEN_CODE')}/config"
+        return f"{os.getenv('GEN_CODE')}/config/{self.process}"
 
     @property
-    def process_config_file(self):
-        return f"pythia_{self.process}.cmnd"
+    def madgraph_config_file(self):
+        return f"{self.process_config_dir}/madgraph.dat"
 
     @property
-    def process_config(self):
-        return f"{self.process_config_dir}/{self.process_config_file}"
+    def pythia_config_file(self):
+        return f"{self.process_config_dir}/pythia.cmnd"
+
+    @property
+    def has_madgraph_config(self):
+        return os.path.isfile(self.madgraph_config_file)
 
 
 class DetectorMixin:
@@ -107,18 +112,18 @@ class NEventsMixin:
         return sp + (f"n_events_{int(self.n_events)}",)
 
 
-class OriginalProcessConfig(ProcessMixin, law.ExternalTask):
+class MadgraphConfig(ProcessMixin, law.ExternalTask):
     def output(self):
-        return law.LocalFileTarget(self.process_config)
+        return law.LocalFileTarget(self.madgraph_config_file)
 
 
-class DelphesPythia8(
-    DetectorMixin,
-    NEventsMixin,
-    ProcessMixin,
-    BaseTask,
-):
-    n_max = luigi.IntParameter(default=100000)
+class PythiaConfig(ProcessMixin, law.ExternalTask):
+    def output(self):
+        return law.LocalFileTarget(self.pythia_config_file)
+
+
+class ChunkedEventsTask(NEventsMixin):
+    n_max = luigi.IntParameter(default=1000000)
 
     @property
     def brakets(self):
@@ -132,6 +137,61 @@ class DelphesPythia8(
     def identifiers(self):
         return list(str(i) for i in range(len(self.brakets)))
 
+
+class Madgraph(
+    ChunkedEventsTask,
+    ProcessMixin,
+    BaseTask,
+):
+    def requires(self):
+        return MadgraphConfig.req(self)
+
+    @property
+    def executable(self):
+        return f"{os.getenv('MADGRAPH_DIR')}/bin/mg5_aMC"
+
+    def output(self):
+        return {
+            identifier: {
+                "config": self.local_target(f"config_{identifier}.dat"),
+                "generation": self.local_directory_target(f"out_{identifier}"),
+                "events": self.local_directory_target(
+                    f"out_{identifier}/Events/run_01/unweighted_events.lhe.gz"
+                ),
+            }
+            for identifier in self.identifiers
+        }
+
+    def run(self):
+        madgraph_config_base = self.input().load(formatter="text")
+        # Set up the tasks to compute
+        cmds = []
+        for identifier, (start, stop) in zip(self.identifiers, self.brakets):
+            config_target = self.output()[identifier]["config"]
+            events_target = self.output()[identifier]["generation"]
+
+            n_events = stop - start
+            madgraph_config = str(madgraph_config_base)
+            madgraph_config = madgraph_config.replace(
+                "NEVENTS_PLACEHOLDER", str(int(n_events))
+            )
+            madgraph_config = madgraph_config.replace(
+                "OUTPUT_PLACEHOLDER", events_target.path
+            )
+            config_target.dump(madgraph_config, formatter="text")
+            cmd = [self.executable, "-f", config_target.path]
+            cmds.append(cmd)
+
+        for cmd in cmds:
+            subprocess.run(cmd)
+
+
+class DelphesPythia8(
+    DetectorMixin,
+    ChunkedEventsTask,
+    ProcessMixin,
+    BaseTask,
+):
     def output(self):
         return {
             identifier: {
@@ -142,7 +202,13 @@ class DelphesPythia8(
         }
 
     def requires(self):
-        return OriginalProcessConfig.req(self)
+        if self.has_madgraph_config:
+            return {
+                "madgraph": Madgraph.req(self),
+                "pythia_config": PythiaConfig.req(self),
+            }
+        else:
+            return {"pythia_config": PythiaConfig.req(self)}
 
     @property
     def executable(self):
@@ -151,7 +217,7 @@ class DelphesPythia8(
     @law.decorator.safe_output
     def run(self):
         detector_config = self.detector_config
-        process_config_base = self.input().load(formatter="text")
+        pythia_config_base = self.input()["pythia_config"].load(formatter="text")
 
         # Set up the tasks to compute
         cmds = []
@@ -163,11 +229,16 @@ class DelphesPythia8(
             events_target.parent.touch()
 
             n_events = stop - start
-            process_config = replace_in_config(
-                process_config_base,
-                replacements(n_events),
+            _replacements = dict(n_events=n_events)
+            if self.has_madgraph_config:
+                _replacements["beams_lhef"] = self.input()["madgraph"][identifier][
+                    "events"
+                ].path
+
+            pythia_config = replace_in_config(
+                pythia_config_base, replacements(**_replacements)
             )
-            config_target.dump(process_config, formatter="text")
+            config_target.dump(pythia_config, formatter="text")
 
             cmd = f"{self.executable} {detector_config} {config_target.path} {events_target.path}"
             cmds.append(cmd)
@@ -254,9 +325,10 @@ class PlotEvents(SkimEvents):
 class PlotEventsWrapper(BaseTask, law.WrapperTask):
     def requires(self):
         return [
-            # PlotEvents.req(self, process="nonres_yy", n_events=6e6),
-            PlotEvents.req(self, process="ggh_yy", n_events=6e4),
-            PlotEvents.req(self, process="ttH_yy", n_events=4e3),
-            PlotEvents.req(self, process="vbf_yy", n_events=4e3),
-            PlotEvents.req(self, process="vh_yy", n_events=4e4),
+            PlotEvents.req(self, process="nonres_yy", n_events=1e8),
+            PlotEvents.req(self, process="ggh_yy", n_events=1e6),
+            PlotEvents.req(self, process="ttH_yy", n_events=1e6),
+            PlotEvents.req(self, process="vbf_yy", n_events=1e6),
+            PlotEvents.req(self, process="vh_yy", n_events=1e6),
+            PlotEvents.req(self, process="chihchiw", n_events=1e6),
         ]
