@@ -50,4 +50,45 @@ Then you may run the workflow with executing e.g.:
 law run PlotEvents --process test
 ```
 
+You can look at all outputs of the workflow with
+```bash
+law run PlotEvents --process test --print-status 4
+```
+
+which produces the following output:
+```bash
+print task status with max_depth 4 and target_depth 0
+
+0 > PlotEvents(version=dev, process=test, detector=CMS, processor=yy, n_events=1000)
+│     LocalDirectoryTarget(fs=local_fs, path=output/version_dev/PlotEvents/test/n_events_1000/CMS/yy/plots.pdf)
+│       existent
+│
+└──1 > SkimEvents(version=dev, process=test, detector=CMS, processor=yy, n_events=1000)
+   │     LocalFileTarget(fs=local_fs, path=output/version_dev/SkimEvents/test/n_events_1000/CMS/yy/skimmed.h5)
+   │       existent
+   │
+   └──2 > DelphesPythia8(version=dev, process=test, detector=CMS, n_events=1000, n_max=1000000)
+      │     0:
+      │       config: LocalFileTarget(fs=local_fs, path=output/version_dev/DelphesPythia8/test/n_events_1000/CMS/config_0.txt)
+      │         existent
+      │       events: LocalFileTarget(fs=local_fs, path=output/version_dev/DelphesPythia8/test/n_events_1000/CMS/events_0.root)
+      │         existent
+      │
+      ├──3 > Madgraph(version=dev, process=test, n_events=1000, n_max=1000000)
+      │  │     0:
+      │  │       config: LocalFileTarget(fs=local_fs, path=output/version_dev/Madgraph/test/n_events_1000/config_0.dat)
+      │  │         existent
+      │  │       generation: LocalDirectoryTarget(fs=local_fs, path=output/version_dev/Madgraph/test/n_events_1000/out_0)
+      │  │         existent
+      │  │       events: LocalDirectoryTarget(fs=local_fs, path=output/version_dev/Madgraph/test/n_events_1000/out_0/Events/run_01/unweighted_events.lhe.gz)
+      │  │         existent
+      │  │
+      │  └──4 > MadgraphConfig(process=test, external)
+      │           LocalFileTarget(fs=local_fs, path=config/test/madgraph.dat)
+      │             existent
+      │
+      └──3 > PythiaConfig(process=test, external)
+               LocalFileTarget(fs=local_fs, path=config/test/pythia.cmnd)
+                 existent
+```
 We can see, that the workflow executed all necessary steps, such as using madgraph to produce `LHE` files, using pythia and delphes to produce `root` files, skimming the events, and finally plotting some key features.
