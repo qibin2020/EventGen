@@ -105,7 +105,7 @@ class ProcessorMixin:
 
 
 class NEventsMixin:
-    n_events = luigi.IntParameter(default=1)
+    n_events = luigi.IntParameter(default=1000)
 
     def store_parts(self):
         sp = super().store_parts()

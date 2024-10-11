@@ -1,8 +1,13 @@
 # EventGenDelphes
-This is for running Pythia + Delphes on Perlmutter.
+Minimal python-based workflow to run particle physics simulations on the Perlmutter cluster using Madgraph, Pythia, and Delphes.
+It also includes software to skim and plot key features of the events.
 
 ## Setup
-Before working do `source setup.sh`.
+To setup your working area do:
+```bash
+source setup.sh
+```
+
 When not done yet, this command installs the necessary software environment, pythia, and delphes.
 Also it activates the software environment and sets the necessary environment variables.
 
@@ -18,7 +23,7 @@ You should use the following placeholders for the number of events and the outpu
 
 ### In `madgraph.dat`
 Use:
-```
+```bash
 output OUTPUT_PLACEHOLDER
 launch
 set nevents NEVENTS_PLACEHOLDER
@@ -26,7 +31,7 @@ set nevents NEVENTS_PLACEHOLDER
 
 ### In `pythia.cmnd`
 Use:
-```
+```bash
 Beams:frameType = 4
 Beams:LHEF = LHEF_PLACEHOLDER
 ```
@@ -36,11 +41,13 @@ to import the correct madgraph produces LHE files.
 The workflow is run with `law`.
 
 To index the current available tasks and make them and their parameters usable in the command line please do:
-```
+```bash
 law index
 ```
 
 Then you may run the workflow with executing e.g.:
+```bash
+law run PlotEvents --process test
 ```
-law run SkimEvents
-```
+
+We can see, that the workflow executed all necessary steps, such as using madgraph to produce `LHE` files, using pythia and delphes to produce `root` files, skimming the events, and finally plotting some key features.
