@@ -7,8 +7,9 @@ import pandas as pd
 import awkward as ak
 from coffea.nanoevents import NanoEventsFactory, DelphesSchema
 from matplotlib import pyplot as plt
+import dask
 from dask_jobqueue import SLURMCluster
-from dask.distributed import Client
+from dask.distributed import Client, LocalCluster
 from dask import delayed
 
 from utils.pythia import replace_in_config, replacements
@@ -214,7 +215,11 @@ class SkimEvents(
 
         processor = self.processor_class()
         out = processor.process(events)
-        computed = out.compute()
+
+        # avail_cores = multiprocessing.cpu_count() - 2
+        cluster = LocalCluster()
+        client = Client(cluster)
+        (computed,) = dask.compute(out)
 
         df = pd.DataFrame(computed.to_numpy().data)
 
