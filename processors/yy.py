@@ -85,23 +85,26 @@ class Processor(processor.ProcessorABC):
         # Prevent None in mask
         good = ak.fill_none(good, False)
 
+        scale = lambda x: x * 1_000
+
         return ak.zip(
             {
                 # photons
-                "diphoton_mass": diphoton_mass[good],
+                "diphoton_mass": scale(diphoton_mass)[good],
+                "diphoton_pt": scale(diphoton_pt)[good],
                 "photon1_pt_rel": photon1_pt_rel[good],
                 "photon2_pt_rel": photon2_pt_rel[good],
                 "diphoton_delta_r": diphoton_delta_r[good],
                 # jets
-                "jet1_pt": jets.pt[:, 0][good],
-                "jet2_pt": jets.pt[:, 1][good],
-                "dijet_mass": dijet_mass[good],
+                "jet1_pt": scale(jets.pt[:, 0])[good],
+                "jet2_pt": scale(jets.pt[:, 1])[good],
+                "dijet_mass": scale(dijet_mass)[good],
                 "dijet_delta_r": dijet_delta_r[good],
-                "ht_30": ht_30[good],
+                "ht_30": scale(ht_30)[good],
                 # leptons
                 "has_lepton": has_lepton[good],
                 # met
-                "met_pt": met_pt[good],
+                "met_pt": scale(met_pt)[good],
                 # misc features
                 "n_photon": n_photons[good],
                 "n_jet": n_jets[good],
