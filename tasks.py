@@ -346,10 +346,10 @@ class PlotEvents(SkimEvents):
 class PlotEventsWrapper(BaseTask, law.WrapperTask):
     def requires(self):
         return [
-            PlotEvents.req(self, process="nonres_yy", n_events=1e8),
-            PlotEvents.req(self, process="ggh_yy", n_events=1e6),
-            PlotEvents.req(self, process="ttH_yy", n_events=1e6),
-            PlotEvents.req(self, process="vbf_yy", n_events=1e6),
-            PlotEvents.req(self, process="vh_yy", n_events=1e6),
-            PlotEvents.req(self, process="chihchiw", n_events=1e6),
+            PlotEvents.req(self, process="nonres_yy", processor="yy", n_events=1e8),
+            PlotEvents.req(self, process="ggh_yy", processor="yy", n_events=1e6),
+            PlotEvents.req(self, process="ttH_yy", processor="yy", n_events=1e6),
+            PlotEvents.req(self, process="vbf_yy", processor="yy", n_events=1e6),
+            PlotEvents.req(self, process="vh_yy", processor="yy", n_events=1e6),
+            PlotEvents.req(self, process="WN_HyyN", processor="yy", n_events=1e7),
         ]
