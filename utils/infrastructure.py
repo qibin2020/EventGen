@@ -3,8 +3,9 @@ import warnings
 import functools
 from typing import Callable, TypeVar, Any
 
+import law
+from dask.distributed import Client, LocalCluster
 from dask_jobqueue import SLURMCluster
-from dask.distributed import Client
 from dask import delayed, compute
 
 
@@ -140,10 +141,16 @@ configs = {
     ),
 }
 
+class ClusterMixin:
+    cluster_mode = law.Parameter(default="local")
 
-# slurm_factory = SlurmFactory(
-#     jobs=1,
-#     log_directory=os.getenv("GEN_SLURM"),
-#     local_directory=os.getenv("GEN_SLURM"),
-#     **configs["perlmutter_debug"],
-# )
+    def start_cluster(self, n_workers=1):
+        # Set up the SLURM cluster
+        if self.cluster_mode == "local":
+            cluster = LocalCluster()
+        elif self.cluster_mode == "slurm":
+            cluster = SLURMCluster(**configs["perlmutter_debug"])
+        else:
+            raise ValueError(f"Unknown cluster mode {self.cluster}")
+        cluster.scale(n_workers)
+        return cluster

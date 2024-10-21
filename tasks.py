@@ -5,16 +5,14 @@ import subprocess
 import luigi
 import law
 import pandas as pd
-import awkward as ak
 from coffea.nanoevents import NanoEventsFactory, DelphesSchema
 from matplotlib import pyplot as plt
 import dask
-from dask_jobqueue import SLURMCluster
-from dask.distributed import Client, LocalCluster
+from dask.distributed import Client
 from dask import delayed
 
 from utils.pythia import replace_in_config, replacements
-from utils.infrastructure import configs
+from utils.infrastructure import ClusterMixin
 
 
 class BaseTask(law.Task):
@@ -191,6 +189,7 @@ class DelphesPythia8(
     DetectorMixin,
     ChunkedEventsTask,
     ProcessMixin,
+    ClusterMixin,
     BaseTask,
 ):
     def output(self):
@@ -250,6 +249,7 @@ class DelphesPythia8(
         cluster.scale(len(self.brakets))
 
         # Connect to the cluster
+        cluster = self.start_cluster(n_workers=len(self.brakets))
         client = Client(cluster)
 
         # Submit tasks
@@ -270,6 +270,7 @@ class SkimEvents(
     DetectorMixin,
     NEventsMixin,
     ProcessMixin,
+    ClusterMixin,
     BaseTask,
 ):
     def requires(self):
@@ -289,8 +290,7 @@ class SkimEvents(
         processor = self.processor_class()
         out = processor.process(events)
 
-        # avail_cores = multiprocessing.cpu_count() - 2
-        cluster = LocalCluster()
+        cluster = self.start_cluster()
         client = Client(cluster)
         (computed,) = dask.compute(out)
 
