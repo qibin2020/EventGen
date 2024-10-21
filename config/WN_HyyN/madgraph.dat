@@ -14,6 +14,7 @@ launch
 
 set nevents NEVENTS_PLACEHOLDER
 
+set param_card mass 25 125
 set param_card mass 1000022 0.5
 set param_card mass 1000023 200
 set param_card mass 1000024 200
