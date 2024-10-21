@@ -19,7 +19,7 @@ In the new directory you might add a madgraph configuration `madgraph.dat` and a
 If a madgraph configuration exist, the workflow will produce an LHE file with madgraph and feed this file to pythia and delphes.
 If only a pythia configuration exists, the workflow will generate the events with pythia only.
 
-You should use the following placeholders for the number of events and the output directories:
+You should use the following placeholders, which will be automatically filled/overwritten:
 
 ### In `madgraph.dat`
 Use:
@@ -28,14 +28,17 @@ output OUTPUT_PLACEHOLDER
 launch
 set nevents NEVENTS_PLACEHOLDER
 ```
+to set the output directory and the number of events.
 
 ### In `pythia.cmnd`
 Use:
 ```bash
+Main:numberOfEvents = NEVENTS_PLACEHOLDER 
+
 Beams:frameType = 4
-Beams:LHEF = LHEF_PLACEHOLDER
+Beams:LHEF = INPUT_PLACEHOLDER
 ```
-to import the correct madgraph produces LHE files.
+to set the number of events and import the correct madgraph produced LHE files.
 
 ## Workflow
 The workflow is run with `law`.
@@ -47,40 +50,44 @@ law index
 
 Then you may run the workflow with executing e.g.:
 ```bash
-law run PlotEvents --process test
+law run PlotEvents --process test --processor test
 ```
 
 You can look at all outputs of the workflow with
 ```bash
-law run PlotEvents --process test --print-status 4
+law run PlotEvents --process test --processor test --print-status 4
 ```
 
-which produces the following output:
+which produces the following output (paths are shortened):
 ```bash
 print task status with max_depth 4 and target_depth 0
 
-0 > PlotEvents(version=dev, process=test, detector=CMS, processor=yy, n_events=1000)
-│     LocalDirectoryTarget(fs=local_fs, path=output/version_dev/PlotEvents/test/n_events_1000/CMS/yy/plots.pdf)
+0 > PlotEvents(cluster_mode=local, version=dev, process=test, detector=CMS, processor=test, n_events=1000)
+│     LocalDirectoryTarget(fs=local_fs, path=output/version_dev/PlotEvents/test/n_events_1000/CMS/test/plots.pdf)
 │       existent
 │
-└──1 > SkimEvents(version=dev, process=test, detector=CMS, processor=yy, n_events=1000)
-   │     LocalFileTarget(fs=local_fs, path=output/version_dev/SkimEvents/test/n_events_1000/CMS/yy/skimmed.h5)
+└──1 > SkimEvents(cluster_mode=local, version=dev, process=test, detector=CMS, processor=test, n_events=1000)
+   │     cutflow: LocalFileTarget(fs=local_fs, path=output/version_dev/SkimEvents/test/n_events_1000/CMS/test/cutflow.json)
+   │       existent
+   │     events: LocalFileTarget(fs=local_fs, path=output/version_dev/SkimEvents/test/n_events_1000/CMS/test/skimmed.h5)
    │       existent
    │
-   └──2 > DelphesPythia8(version=dev, process=test, detector=CMS, n_events=1000, n_max=1000000)
+   └──2 > DelphesPythia8(cluster_mode=local, version=dev, process=test, detector=CMS, n_events=1000, n_max=1000000)
       │     0:
-      │       config: LocalFileTarget(fs=local_fs, path=output/version_dev/DelphesPythia8/test/n_events_1000/CMS/config_0.txt)
+      │       config: LocalFileTarget(fs=local_fs, path=output/version_dev/DelphesPythia8/test/n_events_1000/CMS/0/config.txt)
       │         existent
-      │       events: LocalFileTarget(fs=local_fs, path=output/version_dev/DelphesPythia8/test/n_events_1000/CMS/events_0.root)
+      │       events: LocalFileTarget(fs=local_fs, path=output/version_dev/DelphesPythia8/test/n_events_1000/CMS/0/events.root)
+      │         existent
+      │       out: LocalFileTarget(fs=local_fs, path=output/version_dev/DelphesPythia8/test/n_events_1000/CMS/0/out.txt)
       │         existent
       │
       ├──3 > Madgraph(version=dev, process=test, n_events=1000, n_max=1000000)
       │  │     0:
       │  │       config: LocalFileTarget(fs=local_fs, path=output/version_dev/Madgraph/test/n_events_1000/config_0.dat)
       │  │         existent
-      │  │       generation: LocalDirectoryTarget(fs=local_fs, path=output/version_dev/Madgraph/test/n_events_1000/out_0)
+      │  │       madgraph_dir: LocalDirectoryTarget(fs=local_fs, path=output/version_dev/Madgraph/test/n_events_1000/out_0)
       │  │         existent
-      │  │       events: LocalDirectoryTarget(fs=local_fs, path=output/version_dev/Madgraph/test/n_events_1000/out_0/Events/run_01/unweighted_events.lhe.gz)
+      │  │       events: LocalFileTarget(fs=local_fs, path=output/version_dev/Madgraph/test/n_events_1000/out_0/Events/run_01/unweighted_events.lhe.gz)
       │  │         existent
       │  │
       │  └──4 > MadgraphConfig(process=test, external)
