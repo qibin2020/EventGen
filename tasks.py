@@ -215,6 +215,12 @@ class DelphesPythia8(
     def executable(self):
         return f"{os.getenv('DELPHES_DIR')}/DelphesPythia8"
 
+    @staticmethod
+    def call_with_output(cmd, out_path):
+        with open(out_path, "w") as out_file:
+            result = subprocess.call(cmd, stdout=out_file, stderr=out_file)
+        return result
+
     @law.decorator.safe_output
     def run(self):
         detector_config = self.detector_config
@@ -225,9 +231,11 @@ class DelphesPythia8(
         for identifier, (start, stop) in zip(self.identifiers, self.brakets):
             config_target = self.output()[identifier]["config"]
             events_target = self.output()[identifier]["events"]
+            out_target = self.output()[identifier]["out"]
 
             config_target.parent.touch()
             events_target.parent.touch()
+            out_target.parent.touch()
 
             n_events = stop - start
             _replacements = dict(n_events=n_events)
@@ -241,19 +249,20 @@ class DelphesPythia8(
             )
             config_target.dump(pythia_config, formatter="text")
 
-            cmd = f"{self.executable} {detector_config} {config_target.path} {events_target.path}"
-            cmds.append(cmd)
-
-        # Set up the SLURM cluster
-        cluster = SLURMCluster(**configs["perlmutter_debug"])
-        cluster.scale(len(self.brakets))
+            cmd = [
+                self.executable,
+                detector_config,
+                config_target.path,
+                events_target.path,
+            ]
+            cmds.append((cmd, out_target.path))
 
         # Connect to the cluster
         cluster = self.start_cluster(n_workers=len(self.brakets))
         client = Client(cluster)
 
         # Submit tasks
-        tasks = [delayed(os.system)(cmd) for cmd in cmds]
+        tasks = [delayed(self.call_with_output)(cmd, out) for (cmd, out) in cmds]
         results = client.compute(tasks)
 
         # Gather the results
