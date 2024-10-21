@@ -2,8 +2,8 @@
 ! Generation of non-resonant proton-proton to photon-photon (pp -> γγ) process
 
 ! 1) Settings used in the main program.
-Main:numberOfEvents = 10000         ! number of events to generate
-Main:timesAllowErrors = 3           ! how many aborts before run stops
+Main:numberOfEvents = NEVENTS_PLACEHOLDER  ! number of events to generate
+Main:timesAllowErrors = 3                  ! how many aborts before run stops
 
 ! 2) Settings related to output in init(), next() and stat().
 Init:showChangedSettings = off      ! list changed settings

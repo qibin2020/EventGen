@@ -35,3 +35,5 @@ output OUTPUT_PLACEHOLDER
 launch
 
 set nevents NEVENTS_PLACEHOLDER
+set ebeam1 7000
+set ebeam2 7000
