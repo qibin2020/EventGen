@@ -45,7 +45,7 @@ class BaseTask(law.Task):
 
 
 class ProcessMixin:
-    process = law.Parameter(default="ttbar")
+    process = law.Parameter(default="test")
 
     def store_parts(self):
         sp = super().store_parts()
@@ -89,7 +89,7 @@ class DetectorMixin:
 
 
 class ProcessorMixin:
-    processor = law.Parameter(default="yy")
+    processor = law.Parameter(default="test")
 
     def store_parts(self):
         sp = super().store_parts()
