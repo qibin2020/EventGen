@@ -224,7 +224,7 @@ class DelphesPythia8(
     @law.decorator.safe_output
     def run(self):
         detector_config = self.detector_config
-        pythia_config_base = self.input()["pythia_config"].load(formatter="text")
+        pythia_config = self.input()["pythia_config"].load(formatter="text")
 
         # Set up the tasks to compute
         cmds = []
@@ -238,15 +238,14 @@ class DelphesPythia8(
             out_target.parent.touch()
 
             n_events = stop - start
-            _replacements = dict(n_events=n_events)
-            if self.has_madgraph_config:
-                _replacements["beams_lhef"] = self.input()["madgraph"][identifier][
-                    "events"
-                ].path
+            pythia_config = pythia_config.replace("NEVENTS_PLACEHOLDER", str(int(n_events)))
 
-            pythia_config = replace_in_config(
-                pythia_config_base, replacements(**_replacements)
-            )
+            if self.has_madgraph_config:
+                madgraph_events = self.input()["madgraph"][identifier]["events"].path
+                pythia_config = pythia_config.replace(
+                    "INPUT_PLACEHOLDER", madgraph_events
+                )
+
             config_target.dump(pythia_config, formatter="text")
 
             cmd = [
