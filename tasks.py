@@ -138,6 +138,7 @@ class ChunkedEventsTask(NEventsMixin):
         return list(str(i) for i in range(len(self.brakets)))
 
 
+
 class Madgraph(
     ChunkedEventsTask,
     ProcessMixin,
@@ -154,8 +155,8 @@ class Madgraph(
         return {
             identifier: {
                 "config": self.local_target(f"config_{identifier}.dat"),
-                "generation": self.local_directory_target(f"out_{identifier}"),
-                "events": self.local_directory_target(
+                "madgraph_dir": self.local_directory_target(f"out_{identifier}"),
+                "events": self.local_target(
                     f"out_{identifier}/Events/run_01/unweighted_events.lhe.gz"
                 ),
             }
@@ -168,7 +169,7 @@ class Madgraph(
         cmds = []
         for identifier, (start, stop) in zip(self.identifiers, self.brakets):
             config_target = self.output()[identifier]["config"]
-            events_target = self.output()[identifier]["generation"]
+            madgraph_target = self.output()[identifier]["madgraph_dir"]
 
             n_events = stop - start
             madgraph_config = str(madgraph_config_base)
@@ -176,7 +177,7 @@ class Madgraph(
                 "NEVENTS_PLACEHOLDER", str(int(n_events))
             )
             madgraph_config = madgraph_config.replace(
-                "OUTPUT_PLACEHOLDER", events_target.path
+                "OUTPUT_PLACEHOLDER", madgraph_target.path
             )
             config_target.dump(madgraph_config, formatter="text")
             cmd = [self.executable, "-f", config_target.path]
@@ -195,8 +196,9 @@ class DelphesPythia8(
     def output(self):
         return {
             identifier: {
-                "config": self.local_target(f"config_{identifier}.txt"),
-                "events": self.local_target(f"events_{identifier}.root"),
+                "config": self.local_target(f"{identifier}/config.txt"),
+                "events": self.local_target(f"{identifier}/events.root"),
+                "out": self.local_target(f"{identifier}/out.txt"),
             }
             for identifier in self.identifiers
         }
