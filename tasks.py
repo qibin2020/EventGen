@@ -11,7 +11,7 @@ import dask
 from dask.distributed import Client
 from dask import delayed
 
-from utils.pythia import replace_in_config, replacements
+from utils.numpy import NumpyEncoder
 from utils.infrastructure import ClusterMixin
 
 
@@ -286,7 +286,10 @@ class SkimEvents(
         return DelphesPythia8.req(self)
 
     def output(self):
-        return self.local_target("skimmed.h5")
+        return {
+            "cutflow": self.local_target("cutflow.json"),
+            "events": self.local_target("skimmed.h5"),
+        }
 
     @law.decorator.safe_output
     def run(self):
@@ -303,11 +306,19 @@ class SkimEvents(
         client = Client(cluster)
         (computed,) = dask.compute(out)
 
-        df = pd.DataFrame(computed.to_numpy().data)
+        # Write cutflow to json
+        cutflow = computed["cutflow"]
+        self.output()["cutflow"].dump(cutflow, cls=NumpyEncoder)
 
-        # Write file to h5
-        self.output().parent.touch()
-        df.to_hdf(self.output().path, key="events")
+        # Write events to h5
+        events = computed["events"]
+        df = pd.DataFrame(events.to_numpy().data)
+
+        # add efficiencies
+        eff = cutflow["good"] / cutflow["total"]
+        df["selection_efficiency"] = eff
+
+        df.to_hdf(self.output()["events"].path, key="events")
 
 
 class PlotEvents(SkimEvents):
@@ -319,7 +330,7 @@ class PlotEvents(SkimEvents):
 
     def run(self):
         # Read the DataFrame from the HDF5 file
-        df = pd.read_hdf(self.input().path, key="events")
+        df = pd.read_hdf(self.input()["events"].path, key="events")
 
         # Plot the Dataframe
         df.hist(figsize=(15, 8), log=True)
