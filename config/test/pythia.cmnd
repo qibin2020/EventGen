@@ -2,7 +2,7 @@
 ! Generation of madgraph process
 
 ! 1) Settings used in the main program.
-Main:numberOfEvents = 10000         ! number of events to generate
+Main:numberOfEvents = NEVENTS_PLACEHOLDER         ! number of events to generate
 Main:timesAllowErrors = 3           ! how many aborts before run stops
 
 ! 2) Settings related to output in init(), next() and stat().
@@ -15,7 +15,7 @@ Next:numberShowEvent = 0            ! Disable event record printout
 
 ! 3) Beam parameter settings. Values below agree with default ones.
 Beams:frameType = 4
-Beams:LHEF = LHEF_PLACEHOLDER
+Beams:LHEF = INPUT_PLACEHOLDER
 
 ! 4) Settings for the hard-process generation.
 ! Handled by madgraph
