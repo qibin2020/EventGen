@@ -24,10 +24,12 @@ class Processor(processor.ProcessorABC):
         )
 
         diphoton_mass = (hgamma[:, 0] + hgamma[:, 1]).mass
+        diphoton_pt = (hgamma[:, 0] + hgamma[:, 1]).pt
         diphoton_delta_r = hgamma[:, 0].delta_r(hgamma[:, 1])
+        gamma_pt = photons.pt
         gamma_pt_rel = photons.pt / diphoton_mass[:, None]
+        photon1_pt, photon2_pt = gamma_pt[:, 0], gamma_pt[:, 1]
         photon1_pt_rel, photon2_pt_rel = gamma_pt_rel[:, 0], gamma_pt_rel[:, 1]
-
         jets = pad(events.Jet, 2)
         jets = ak.zip(
             {
@@ -86,28 +88,33 @@ class Processor(processor.ProcessorABC):
         good = ak.fill_none(good, False)
 
         scale = lambda x: x * 1_000
-
-        return ak.zip(
-            {
-                # photons
-                "diphoton_mass": scale(diphoton_mass)[good],
-                "diphoton_pt": scale(diphoton_pt)[good],
-                "photon1_pt_rel": photon1_pt_rel[good],
-                "photon2_pt_rel": photon2_pt_rel[good],
-                "diphoton_delta_r": diphoton_delta_r[good],
-                # jets
-                "jet1_pt": scale(jets.pt[:, 0])[good],
-                "jet2_pt": scale(jets.pt[:, 1])[good],
-                "dijet_mass": scale(dijet_mass)[good],
-                "dijet_delta_r": dijet_delta_r[good],
-                "ht_30": scale(ht_30)[good],
-                # leptons
-                "has_lepton": has_lepton[good],
-                # met
-                "met_pt": scale(met_pt)[good],
-                # misc features
-                "n_photon": n_photons[good],
-                "n_jet": n_jets[good],
-                "event_weight": event_weight[good],
-            }
-        )
+        return {
+            "cutflow": {
+                "total": ak.num(good, axis=0),
+                "good": ak.sum(good),
+            },
+            "events": ak.zip(
+                {
+                    # photons
+                    "diphoton_mass": scale(diphoton_mass)[good],
+                    "diphoton_pt": scale(diphoton_pt)[good],
+                    "photon1_pt_rel": photon1_pt_rel[good],
+                    "photon2_pt_rel": photon2_pt_rel[good],
+                    "diphoton_delta_r": diphoton_delta_r[good],
+                    # jets
+                    "jet1_pt": scale(jets.pt[:, 0])[good],
+                    "jet2_pt": scale(jets.pt[:, 1])[good],
+                    "dijet_mass": scale(dijet_mass)[good],
+                    "dijet_delta_r": dijet_delta_r[good],
+                    "ht_30": scale(ht_30)[good],
+                    # leptons
+                    "has_lepton": has_lepton[good],
+                    # met
+                    "met_pt": scale(met_pt)[good],
+                    # misc features
+                    "n_photon": n_photons[good],
+                    "n_jet": n_jets[good],
+                    "event_weight": event_weight[good],
+                }
+            ),
+        }
