@@ -152,10 +152,10 @@ class Madgraph(
     def output(self):
         return {
             identifier: {
-                "config": self.local_target(f"config_{identifier}.dat"),
-                "madgraph_dir": self.local_directory_target(f"out_{identifier}"),
+                "config": self.local_target(f"{identifier}/config.dat"),
+                "madgraph_dir": self.local_directory_target(f"{identifier}/out"),
                 "events": self.local_target(
-                    f"out_{identifier}/Events/run_01/unweighted_events.lhe.gz"
+                    f"{identifier}/out/Events/run_01/unweighted_events.lhe.gz"
                 ),
             }
             for identifier in self.identifiers
