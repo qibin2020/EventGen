@@ -99,3 +99,6 @@ print task status with max_depth 4 and target_depth 0
                  existent
 ```
 We can see, that the workflow executed all necessary steps, such as using madgraph to produce `LHE` files, using pythia and delphes to produce `root` files, skimming the events, and finally plotting some key features.
+
+## Misc
+Madgraph creates a file named `py.py` in the directory in which the execution takes place. This file does not seem to cause any problems even when running many madgraph processes simultaneously. Please find a discussion about it [here](https://answers.launchpad.net/mg5amcnlo/+question/679610).
