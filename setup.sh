@@ -18,11 +18,44 @@ action() {
     # set PYTHONPATH
     export PYTHONPATH="${this_dir}:${PYTHONPATH}"
 
-    local scratch_dir="/pscratch/sd/d/dnoll/projects/haxad/EventGenDelphes"
+    CONFIG_FILE="${this_dir}/.config"
+
+    # Function to read the output directory from the config file
+    read_config() {
+        if [[ -f $CONFIG_FILE ]]; then
+            source $CONFIG_FILE
+        else
+            export GEN_OUT=""
+        fi
+    }
+
+    # Function to write the output directory to the config file
+    write_config() {
+        echo "export GEN_OUT=\"$GEN_OUT\"" > $CONFIG_FILE
+    }
+
+    # Prompt user for input if GEN_OUT is not set
+    prompt_user() {
+        read -p "Enter the output directory: " user_input
+        if [[ -n $user_input ]]; then
+            export GEN_OUT=$user_input
+            write_config
+        fi
+    }
+
+    # Main script execution
+    read_config
+
+    if [[ -z $GEN_OUT ]]; then
+        echo "No output directory configured."
+        prompt_user
+    fi
+
+    # Use the GEN_OUT in your script
+    echo "Using output directory: $GEN_OUT"
 
     # Set code and law area
     export GEN_CODE="${this_dir}"
-    export GEN_OUT="${scratch_dir}/output"
     export GEN_SLURM="${GEN_OUT}/slurm"
     
     # Setup software directories
