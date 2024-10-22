@@ -51,7 +51,7 @@ class ClusterMixin:
         if self.cluster_mode == "local":
             cluster = LocalCluster()
         elif self.cluster_mode == "slurm":
-            cluster = SLURMCluster(**configs["perlmutter_debug"])
+            cluster = SLURMCluster(**configs["perlmutter_medium"])
         else:
             raise ValueError(f"Unknown cluster mode {self.cluster}")
         cluster.scale(n_workers)
