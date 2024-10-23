@@ -132,9 +132,12 @@ class ChunkedEventsTask(NEventsMixin):
         return list(brakets)
 
     @property
-    def identifiers(self):
-        return list(str(i) for i in range(len(self.brakets)))
+    def n_brakets(self):
+        return len(self.brakets)
 
+    @property
+    def identifiers(self):
+        return list(str(i) for i in range(self.n_brakets))
 
 
 class Madgraph(
@@ -192,6 +195,12 @@ class DelphesPythia8(
     ClusterMixin,
     BaseTask,
 ):
+    # SLURM Configuration
+    cores = 1
+    memory = "1GB"
+    walltime = "24:00:00"
+    qos = "shared"
+
     def output(self):
         return {
             identifier: {
@@ -238,7 +247,9 @@ class DelphesPythia8(
             out_target.parent.touch()
 
             n_events = stop - start
-            pythia_config = pythia_config.replace("NEVENTS_PLACEHOLDER", str(int(n_events)))
+            pythia_config = pythia_config.replace(
+                "NEVENTS_PLACEHOLDER", str(int(n_events))
+            )
 
             if self.has_madgraph_config:
                 madgraph_events = self.input()["madgraph"][identifier]["events"].path
@@ -257,7 +268,7 @@ class DelphesPythia8(
             cmds.append((cmd, out_target.path))
 
         # Connect to the cluster
-        cluster = self.start_cluster(n_workers=len(self.brakets))
+        cluster = self.start_cluster(self.n_brakets)
         client = Client(cluster)
 
         # Submit tasks
@@ -281,13 +292,21 @@ class SkimEvents(
     ClusterMixin,
     BaseTask,
 ):
+    # SLURM Configuration
+    # Using only one core as task will be IO limited
+    cores = 1
+    memory = "5GB"
+    walltime = "00:05:00"
+    qos = "shared"
+    arch = "cpu"
+
     def requires(self):
         return DelphesPythia8.req(self)
 
     def output(self):
         return {
             "cutflow": self.local_target("cutflow.json"),
-            "events": self.local_target("skimmed.h5"),
+            "events": self.local_target("skimmed.h5.tmp"),
         }
 
     @law.decorator.safe_output
@@ -301,7 +320,7 @@ class SkimEvents(
         processor = self.processor_class()
         out = processor.process(events)
 
-        cluster = self.start_cluster()
+        cluster = self.start_cluster(len(inputs))
         client = Client(cluster)
         (computed,) = dask.compute(out)
 
