@@ -19,3 +19,6 @@ set param_card mass 1000022 0.5
 set param_card mass 1000023 200
 set param_card mass 1000024 200
 set param_card mass -1000024 200
+
+set ebeam1 7000
+set ebeam2 7000
