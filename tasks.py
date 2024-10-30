@@ -306,7 +306,7 @@ class SkimEvents(
     def output(self):
         return {
             "cutflow": self.local_target("cutflow.json"),
-            "events": self.local_target("skimmed.h5.tmp"),
+            "events": self.local_target("skimmed.h5"),
         }
 
     @law.decorator.safe_output
