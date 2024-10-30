@@ -55,6 +55,7 @@ class Processor(processor.ProcessorABC):
         n_photons = ak.num(events.Photon)
         n_jets = ak.num(events.Jet)
         event_weight = events.Event.Weight
+        event_number = events.Event.Number
 
         # event selection
         """
@@ -100,13 +101,16 @@ class Processor(processor.ProcessorABC):
                     "diphoton_pt": scale(diphoton_pt)[good],
                     "photon1_pt_rel": photon1_pt_rel[good],
                     "photon2_pt_rel": photon2_pt_rel[good],
-                    "diphoton_delta_r": diphoton_delta_r[good],
+                    "diphoton_delta_r": diphoton_delta_r[good],  # TODO: Legacy, Remove when all simulated
+                    "diphoton_delta_R": diphoton_delta_r[good],
                     # jets
                     "jet1_pt": scale(jets.pt[:, 0])[good],
                     "jet2_pt": scale(jets.pt[:, 1])[good],
                     "dijet_mass": scale(dijet_mass)[good],
-                    "dijet_delta_r": dijet_delta_r[good],
-                    "ht_30": scale(ht_30)[good],
+                    "dijet_delta_r": dijet_delta_r[good],  # TODO: Legacy, Remove when all simulated
+                    "dijet_delta_R": dijet_delta_r[good],
+                    "ht_30": scale(ht_30)[good],  # TODO: Legacy, Remove when all simulated
+                    "Ht_30": scale(ht_30)[good],
                     # leptons
                     "has_lepton": has_lepton[good],
                     # met
@@ -115,6 +119,7 @@ class Processor(processor.ProcessorABC):
                     "n_photon": n_photons[good],
                     "n_jet": n_jets[good],
                     "event_weight": event_weight[good],
+                    "event_number": event_number[good],
                 }
             ),
         }
