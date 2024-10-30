@@ -67,7 +67,7 @@ class ProcessMixin:
 
 
 class DetectorMixin:
-    detector = law.Parameter(default="CMS")
+    detector = law.Parameter(default="ATLAS")
 
     def store_parts(self):
         sp = super().store_parts()
