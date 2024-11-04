@@ -105,10 +105,6 @@ class ProcessorMixin:
 class NEventsMixin:
     n_events = luigi.IntParameter(default=1000)
 
-    def store_parts(self):
-        sp = super().store_parts()
-        return sp + (f"n_events_{int(self.n_events)}",)
-
 
 class MadgraphConfig(ProcessMixin, law.ExternalTask):
     def output(self):
@@ -137,7 +133,7 @@ class ChunkedEventsTask(NEventsMixin):
 
     @property
     def identifiers(self):
-        return list(str(i) for i in range(self.n_brakets))
+        return list(f"{i}_with_{int(self.n_max)}" for i in range(self.n_brakets))
 
 
 class Madgraph(
@@ -179,6 +175,10 @@ class Madgraph(
         for identifier, (start, stop) in zip(self.identifiers, self.brakets):
             config_target = self.output()[identifier]["config"]
             madgraph_target = self.output()[identifier]["madgraph_dir"]
+            events_target = self.output()[identifier]["events"]
+            # In case the task already successfully finished an identifier
+            if events_target.exists():
+                continue
 
             n_events = stop - start
             madgraph_config = str(madgraph_config_base)
@@ -262,6 +262,9 @@ class DelphesPythia8(
             config_target = self.output()[identifier]["config"]
             events_target = self.output()[identifier]["events"]
             out_target = self.output()[identifier]["out"]
+            # In case the task already successfully finished an identifier
+            if events_target.exists():
+                continue
 
             config_target.parent.touch()
             events_target.parent.touch()
@@ -289,7 +292,7 @@ class DelphesPythia8(
             cmds.append((cmd, out_target.path))
 
         # Connect to the cluster
-        cluster = self.start_cluster(self.n_brakets)
+        cluster = self.start_cluster(len(cmds))
         client = Client(cluster)
 
         # Submit tasks
