@@ -143,8 +143,16 @@ class ChunkedEventsTask(NEventsMixin):
 class Madgraph(
     ChunkedEventsTask,
     ProcessMixin,
+    ClusterMixin,
     BaseTask,
 ):
+    # SLURM Configuration
+    # Adjusted to 1Mio events of nonres_yy_jjj process
+    cores = 1
+    memory = "64GB"
+    walltime = "24:00:00"
+    qos = "shared"
+
     def requires(self):
         return MadgraphConfig.req(self)
 
@@ -184,8 +192,21 @@ class Madgraph(
             cmd = [self.executable, "-f", config_target.path]
             cmds.append(cmd)
 
-        for cmd in cmds:
-            subprocess.run(cmd)
+        # Connect to the cluster
+        cluster = self.start_cluster(len(cmds))
+        client = Client(cluster)
+
+        # Submit tasks
+        tasks = [delayed(subprocess.call)(cmd) for cmd in cmds]
+        results = client.compute(tasks)
+
+        # Gather the results
+        results = client.gather(results)
+
+        # Scale down and close the cluster
+        cluster.scale(0)
+        client.close()
+        cluster.close()
 
 
 class DelphesPythia8(
