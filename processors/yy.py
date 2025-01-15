@@ -36,7 +36,7 @@ class Processor(processor.ProcessorABC):
                 "pt": jets.pt,
                 "eta": jets.eta,
                 "phi": jets.phi,
-                "mass": ak.zeros_like(jets.pt),
+                "mass": jets.mass,
                 "charge": ak.zeros_like(jets.pt),
             },
             with_name="PtEtaPhiMCandidate",
