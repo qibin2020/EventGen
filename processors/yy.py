@@ -26,10 +26,9 @@ class Processor(processor.ProcessorABC):
         diphoton_mass = (hgamma[:, 0] + hgamma[:, 1]).mass
         diphoton_pt = (hgamma[:, 0] + hgamma[:, 1]).pt
         diphoton_delta_r = hgamma[:, 0].delta_r(hgamma[:, 1])
-        gamma_pt = photons.pt
         gamma_pt_rel = photons.pt / diphoton_mass[:, None]
-        photon1_pt, photon2_pt = gamma_pt[:, 0], gamma_pt[:, 1]
         photon1_pt_rel, photon2_pt_rel = gamma_pt_rel[:, 0], gamma_pt_rel[:, 1]
+
         jets = pad(events.Jet, 2)
         jets = ak.zip(
             {
@@ -99,18 +98,33 @@ class Processor(processor.ProcessorABC):
                     # photons
                     "diphoton_mass": scale(diphoton_mass)[good],
                     "diphoton_pt": scale(diphoton_pt)[good],
-                    "photon1_pt_rel": photon1_pt_rel[good],
-                    "photon2_pt_rel": photon2_pt_rel[good],
-                    "diphoton_delta_r": diphoton_delta_r[good],  # TODO: Legacy, Remove when all simulated
                     "diphoton_delta_R": diphoton_delta_r[good],
+                    # photon 1
+                    "photon1_pt": scale(hgamma.pt[:, 0])[good],
+                    "photon1_eta": scale(hgamma.eta[:, 0])[good],
+                    "photon1_phi": scale(hgamma.phi[:, 0])[good],
+                    "photon1_m": scale(hgamma.m[:, 0])[good],
+                    "photon1_pt_rel": photon1_pt_rel[good],
+                    # photon 1
+                    "photon2_pt": scale(hgamma.pt[:, 1])[good],
+                    "photon2_eta": scale(hgamma.eta[:, 1])[good],
+                    "photon2_phi": scale(hgamma.phi[:, 1])[good],
+                    "photon2_m": scale(hgamma.m[:, 1])[good],
+                    "photon2_pt_rel": photon2_pt_rel[good],
                     # jets
-                    "jet1_pt": scale(jets.pt[:, 0])[good],
-                    "jet2_pt": scale(jets.pt[:, 1])[good],
                     "dijet_mass": scale(dijet_mass)[good],
-                    "dijet_delta_r": dijet_delta_r[good],  # TODO: Legacy, Remove when all simulated
                     "dijet_delta_R": dijet_delta_r[good],
-                    "ht_30": scale(ht_30)[good],  # TODO: Legacy, Remove when all simulated
-                    "Ht_30": scale(ht_30)[good],
+                    "HT_30": scale(ht_30)[good],
+                    # jet 1
+                    "jet1_pt": scale(jets.pt[:, 0])[good],
+                    "jet1_eta": scale(jets.eta[:, 0])[good],
+                    "jet1_phi": scale(jets.phi[:, 0])[good],
+                    "jet1_m": scale(jets.m[:, 0])[good],
+                    # jet 2
+                    "jet2_pt": scale(jets.pt[:, 1])[good],
+                    "jet2_eta": scale(jets.eta[:, 1])[good],
+                    "jet2_phi": scale(jets.phi[:, 1])[good],
+                    "jet2_m": scale(jets.m[:, 1])[good],
                     # leptons
                     "has_lepton": has_lepton[good],
                     # met
