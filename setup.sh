@@ -57,7 +57,10 @@ action() {
     # Set code and law area
     export GEN_CODE="${this_dir}"
     export GEN_SLURM="${GEN_OUT}/slurm"
-    
+
+    export LAW_HOME="${this_dir}/.law"
+    export LAW_CONFIG_FILE="${this_dir}/law.cfg"
+
     # Setup software directories
     export SOFTWARE_DIR="${this_dir}/software"
     mkdir -p $SOFTWARE_DIR
