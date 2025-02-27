@@ -77,7 +77,7 @@ action() {
     # If conda env "withroot" does not exist create it
     if ! conda env list | grep -q '^withroot'; then
         mamba create --name withroot
-        mamba env update -n withroot --file environment.yml
+        mamba env update -n withroot --file environment_static.yml
 
     fi
 

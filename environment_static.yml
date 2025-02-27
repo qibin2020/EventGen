@@ -132,6 +132,8 @@ dependencies:
   - h2=4.1.0=pyhd8ed1ab_0
   - harfbuzz=9.0.0=hda332d3_1
   - hdf5=1.14.3=nompi_hdf9ad27_105
+  - hepmc2=2.06.11=h5888daf_3
+  - hepmc3=3.3.0=hd113a74_0
   - hist=2.8.0=ha770c72_1
   - hist-base=2.8.0=pyhd8ed1ab_1
   - histoprint=2.4.0=pyhd8ed1ab_0
@@ -408,4 +410,3 @@ dependencies:
       - fsspec-xrootd==0.4.0
       - multidict==6.1.0
       - yarl==1.11.1
-prefix: /pscratch/sd/d/dnoll/tools/conda/withroot
