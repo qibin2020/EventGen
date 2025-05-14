@@ -101,14 +101,14 @@ class Processor(processor.ProcessorABC):
                     "diphoton_delta_R": diphoton_delta_r[good],
                     # photon 1
                     "photon1_pt": scale(hgamma.pt[:, 0])[good],
-                    "photon1_eta": scale(hgamma.eta[:, 0])[good],
-                    "photon1_phi": scale(hgamma.phi[:, 0])[good],
+                    "photon1_eta": hgamma.eta[:, 0][good],
+                    "photon1_phi": hgamma.phi[:, 0][good],
                     "photon1_m": scale(hgamma.m[:, 0])[good],
                     "photon1_pt_rel": photon1_pt_rel[good],
                     # photon 1
                     "photon2_pt": scale(hgamma.pt[:, 1])[good],
-                    "photon2_eta": scale(hgamma.eta[:, 1])[good],
-                    "photon2_phi": scale(hgamma.phi[:, 1])[good],
+                    "photon2_eta": hgamma.eta[:, 1][good],
+                    "photon2_phi": hgamma.phi[:, 1][good],
                     "photon2_m": scale(hgamma.m[:, 1])[good],
                     "photon2_pt_rel": photon2_pt_rel[good],
                     # jets
@@ -117,13 +117,13 @@ class Processor(processor.ProcessorABC):
                     "HT_30": scale(ht_30)[good],
                     # jet 1
                     "jet1_pt": scale(jets.pt[:, 0])[good],
-                    "jet1_eta": scale(jets.eta[:, 0])[good],
-                    "jet1_phi": scale(jets.phi[:, 0])[good],
+                    "jet1_eta": jets.eta[:, 0][good],
+                    "jet1_phi": jets.phi[:, 0][good],
                     "jet1_m": scale(jets.m[:, 0])[good],
                     # jet 2
                     "jet2_pt": scale(jets.pt[:, 1])[good],
-                    "jet2_eta": scale(jets.eta[:, 1])[good],
-                    "jet2_phi": scale(jets.phi[:, 1])[good],
+                    "jet2_eta": jets.eta[:, 1][good],
+                    "jet2_phi": jets.phi[:, 1][good],
                     "jet2_m": scale(jets.m[:, 1])[good],
                     # leptons
                     "has_lepton": has_lepton[good],
