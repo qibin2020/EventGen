@@ -57,7 +57,10 @@ action() {
     # Set code and law area
     export GEN_CODE="${this_dir}"
     export GEN_SLURM="${GEN_OUT}/slurm"
-    
+
+    export LAW_HOME="${this_dir}/.law"
+    export LAW_CONFIG_FILE="${this_dir}/law.cfg"
+
     # Setup software directories
     export SOFTWARE_DIR="${this_dir}/software"
     mkdir -p $SOFTWARE_DIR
@@ -74,7 +77,7 @@ action() {
     # If conda env "withroot" does not exist create it
     if ! conda env list | grep -q '^withroot'; then
         mamba create --name withroot
-        mamba env update -n withroot --file environment.yml
+        mamba env update -n withroot --file environment_static.yml
 
     fi
 
