@@ -1,4 +1,7 @@
 # MSSM chihchiw model
+# References:
+# https://arxiv.org/pdf/2004.10894
+# Table 2 here: https://arxiv.org/pdf/2301.10486
 # Current estimate of cross-section: 0.342 +- 0.002
 import model MSSM_SLHA2
 
