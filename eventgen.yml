@@ -1,0 +1,19 @@
+name: eventgen
+channels:
+  - conda-forge
+dependencies:
+  - python
+  - ipython
+  - law
+  - black
+  - pytables
+  - dask==2024.8.2
+  - dask-jobqueue
+  - coffea
+  - black
+  - root
+  - delphes
+  - pip
+  - pip:
+    - coffea[dask]
+    - six

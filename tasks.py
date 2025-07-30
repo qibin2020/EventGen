@@ -243,7 +243,7 @@ class DelphesPythia8(
 
     @property
     def executable(self):
-        return f"{os.getenv('DELPHES_DIR')}/DelphesPythia8"
+        return f"DelphesPythia8"
 
     @staticmethod
     def call_with_output(cmd, out_path):

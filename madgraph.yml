@@ -1,10 +1,9 @@
-name: withroot
+name: madgraph
 channels:
   - conda-forge
 dependencies:
   - python
-  - six
-  - root
+  - ipython
   - law
   - black
   - pytables
@@ -12,5 +11,7 @@ dependencies:
   - dask-jobqueue
   - coffea
   - black
+  - pip
   - pip:
     - coffea[dask]
+    - six
