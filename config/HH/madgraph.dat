@@ -1,0 +1,14 @@
+# HH production
+import model loop_sm
+
+generate g g > h h QED<=2 [noborn=QCD]
+
+output OUTPUT_PLACEHOLDER
+launch
+
+set nevents NEVENTS_PLACEHOLDER
+
+set param_card mass 25 125
+
+set ebeam1 7000
+set ebeam2 7000
