@@ -5,7 +5,11 @@ import subprocess
 import luigi
 import law
 import pandas as pd
-from coffea.nanoevents import NanoEventsFactory, DelphesSchema
+from coffea.nanoevents import DelphesSchema
+from coffea.dataset_tools import (
+    apply_to_fileset,
+    preprocess,
+)
 from matplotlib import pyplot as plt
 import dask
 from dask.distributed import Client
@@ -336,24 +340,36 @@ class SkimEvents(
     @law.decorator.safe_output
     def run(self):
         inputs = self.input()
-        events = NanoEventsFactory.from_root(
-            {inp["events"].path: "Delphes" for inp in inputs.values()},
+        # Get FSet
+        fset = {
+            "all": {
+                "files": {inp["events"].path: "Delphes" for inp in inputs.values()}
+            }
+        }
+
+        # Start Preprocessing
+        dataset_runnable, _ = preprocess(fset)
+
+        # Apply to Fileset
+        to_compute = apply_to_fileset(
+            self.processor_class(),
+            dataset_runnable,
             schemaclass=DelphesSchema,
-        ).events()
+        )
 
-        processor = self.processor_class()
-        out = processor.process(events)
-
+        # Compute Payload
         cluster = self.start_cluster(len(inputs))
-        client = Client(cluster)
-        (computed,) = dask.compute(out)
+        with Client(cluster) as client:
+            (output,) = dask.compute(to_compute)
+        
+        output = output["all"]
 
         # Write cutflow to json
-        cutflow = computed["cutflow"]
+        cutflow = output["cutflow"]
         self.output()["cutflow"].dump(cutflow, cls=NumpyEncoder)
 
         # Write events to h5
-        events = computed["events"]
+        events = output["events"]
         df = pd.DataFrame(events.to_numpy().data)
 
         # add efficiencies
