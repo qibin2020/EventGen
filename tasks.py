@@ -329,6 +329,7 @@ class DelphesPythia8(
 class SkimEvents(
     ProcessorMixin,
     DetectorMixin,
+    ChunkedEventsTask,
     NEventsMixin,
     ProcessMixin,
     ClusterMixin,
